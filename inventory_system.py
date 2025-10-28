@@ -1,11 +1,15 @@
 import json
-import logging
+
 from datetime import datetime
 
 # Global variable
 stock_data = {}
 
-def addItem(item="default", qty=0, logs=[]):
+def addItem(item="default", qty=0, logs=None):
+    if logs is None:
+        logs = []
+    if not isinstance(item, str) or not isinstance(qty, int):
+        raise TypeError("Item must be a string and qty must be an integer")
     if not item:
         return
     stock_data[item] = stock_data.get(item, 0) + qty
@@ -16,22 +20,20 @@ def removeItem(item, qty):
         stock_data[item] -= qty
         if stock_data[item] <= 0:
             del stock_data[item]
-    except:
+    except KeyError:
         pass
 
 def getQty(item):
     return stock_data[item]
 
 def loadData(file="inventory.json"):
-    f = open(file, "r")
-    global stock_data
-    stock_data = json.loads(f.read())
-    f.close()
+    with open(file, "r") as f:
+        global stock_data
+        stock_data = json.loads(f.read())
 
 def saveData(file="inventory.json"):
-    f = open(file, "w")
-    f.write(json.dumps(stock_data))
-    f.close()
+    with open(file, "w") as f:
+        f.write(json.dumps(stock_data))
 
 def printData():
     print("Items Report")
@@ -48,7 +50,7 @@ def checkLowItems(threshold=5):
 def main():
     addItem("apple", 10)
     addItem("banana", -2)
-    addItem(123, "ten")  # invalid types, no check
+    
     removeItem("apple", 3)
     removeItem("orange", 1)
     print("Apple stock:", getQty("apple"))
@@ -56,6 +58,7 @@ def main():
     saveData()
     loadData()
     printData()
-    eval("print('eval used')")  # dangerous
+    
 
-main()
+if __name__ == "__main__":
+    main()
